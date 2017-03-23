@@ -92,8 +92,6 @@ namespace SimpleWeb {
                 write_stream << "Content-Length: " << content.size() << "\r\n";
             write_stream << "\r\n";
             
-            connect();
-            
             auto timer=get_timeout_timer();
             boost::asio::async_write(*socket, write_buffer,
                                      [this, &content, timer](const boost::system::error_code &ec, size_t /*bytes_transferred*/) {
@@ -179,6 +177,7 @@ namespace SimpleWeb {
             }
         }
         
+        virtual void connect()=0;
     protected:
         boost::asio::io_service io_service;
         boost::asio::ip::tcp::resolver resolver;
@@ -209,7 +208,6 @@ namespace SimpleWeb {
             return parsed_host_port;
         }
         
-        virtual void connect()=0;
         
         std::shared_ptr<boost::asio::deadline_timer> get_timeout_timer(size_t timeout=0) {
             if(timeout==0)
@@ -390,7 +388,6 @@ namespace SimpleWeb {
     public:
         Client(const std::string& server_port_path) : ClientBase<HTTP>::ClientBase(server_port_path, 80) {}
         
-    protected:
         void connect() {
             if(!socket || !socket->is_open()) {
                 std::unique_ptr<boost::asio::ip::tcp::resolver::query> query;
